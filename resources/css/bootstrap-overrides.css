@@ -1,0 +1,17 @@
+/*
+ * Application overrides for the Bootstrap 5 starter profile.
+ *
+ * This file loads AFTER Bootstrap's compiled CSS (see
+ * resources/js/bootstrap-starter.js import order), so plain selectors
+ * here override Bootstrap at equal specificity without !important.
+ *
+ * For deep theming (colors, radii, breakpoints) use the Sass profile
+ * (resources/sass/bootstrap.scss) instead of patching output CSS.
+ */
+
+/* Example — uncomment to try:
+:root {
+  --bs-primary: #0d6efd;
+  --bs-border-radius: 0.375rem;
+}
+*/

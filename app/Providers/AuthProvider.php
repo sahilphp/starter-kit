@@ -1,0 +1,95 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Providers;
+
+use Sahil\Auth\AuthManager;
+use Sahil\Auth\DatabaseUserProvider;
+use Sahil\Auth\EmailVerification;
+use Sahil\Auth\Gate;
+use Sahil\Auth\PasswordResetManager;
+use Sahil\Auth\PolicyManager;
+use Sahil\Auth\RateLimiter;
+use Sahil\Auth\SessionAuthState;
+use Sahil\Container\Container;
+use Sahil\Contracts\Foundation\ApplicationContract;
+use Sahil\Foundation\ServiceProvider;
+
+/**
+ * Wires the authentication and authorization layer.
+ *
+ * Registers the authentication manager, user providers, guards,
+ * gates, policies, and related middleware.
+ */
+final class AuthProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        $container = $this->app()->container();
+
+        // Register rate limiter
+        $container->singleton(RateLimiter::class, static fn (): RateLimiter => new RateLimiter());
+
+        // Register database user provider
+        $container->singleton(DatabaseUserProvider::class, static function (Container $container): DatabaseUserProvider {
+            $config = $container->make(ApplicationContract::class)->config();
+            $connection = $container->make(\Sahil\Database\Connection::class);
+
+            return new DatabaseUserProvider(
+                $connection,
+                (string) $config->get('auth.providers.users.table', 'users')
+            );
+        });
+
+        // Register session auth state
+        $container->singleton(SessionAuthState::class, static function (Container $container): SessionAuthState {
+            $session = $container->make(\Sahil\Contracts\Session\SessionContract::class);
+            $provider = $container->make(DatabaseUserProvider::class);
+
+            return new SessionAuthState($session, $provider);
+        });
+
+        // Register auth manager
+        $container->singleton(AuthManager::class, static function (Container $container): AuthManager {
+            $config = $container->make(ApplicationContract::class)->config();
+            $provider = $container->make(DatabaseUserProvider::class);
+            $state = $container->make(SessionAuthState::class);
+            $rateLimiter = $container->make(RateLimiter::class);
+
+            $manager = new AuthManager($provider, $state, $rateLimiter);
+
+            // Set password options from config
+            $manager->setPasswordOptions([
+                'algorithm' => (int) $config->get('auth.password.algorithm', PASSWORD_BCRYPT),
+                'cost' => (int) $config->get('auth.password.cost', 12),
+            ]);
+
+            return $manager;
+        });
+
+        // Register gate
+        $container->singleton(Gate::class, static fn (): Gate => new Gate());
+
+        // Register policy manager
+        $container->singleton(PolicyManager::class, static fn (): PolicyManager => new PolicyManager());
+
+        // Register email verification
+        $container->singleton(EmailVerification::class, static fn (): EmailVerification => new EmailVerification());
+
+        // Password reset manager is registered conditionally by the application
+        // if they implement PasswordResetTokenRepositoryContract
+
+        // Register authentication middleware
+        $container->singleton(\Sahil\Http\Middleware\Authenticate::class, static fn (Container $c): \Sahil\Http\Middleware\Authenticate
+            => new \Sahil\Http\Middleware\Authenticate($c->make(AuthManager::class)));
+
+        // Register authorization middleware
+        $container->singleton(\Sahil\Http\Middleware\Authorize::class, static function (Container $container): \Sahil\Http\Middleware\Authorize {
+            return new \Sahil\Http\Middleware\Authorize(
+                $container->make(AuthManager::class),
+                $container->make(Gate::class)
+            );
+        });
+    }
+}

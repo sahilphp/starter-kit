@@ -1,0 +1,34 @@
+{
+    "name": "sahilphp/starter-kit",
+    "description": "A starter application for building projects with the SahilPHP framework.",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Idrisa24",
+            "email": "idrisajohn19@gmail.com"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/sahilphp/starter-kit/issues",
+        "source": "https://github.com/sahilphp/starter-kit"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../framework",
+            "options": {
+                "symlink": true,
+                "versions": {
+                    "sahilphp/framework": "1.0.x-dev"
+                }
+            }
+        }
+    ],
+    "require": {
+        "php": "^8.4",
+        "sahilphp/framework": "^1.0@dev"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

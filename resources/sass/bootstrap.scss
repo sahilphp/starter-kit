@@ -1,0 +1,23 @@
+// Bootstrap 5 Sass customization profile.
+//
+// Customize the theme by overriding Bootstrap's `!default` variables
+// BEFORE the import below — values defined here win. After the import
+// you can use Bootstrap's mixins and functions to add components.
+//
+// Verified against Bootstrap 5.3.8 and Dart Sass 1.106.x. Dart Sass
+// emits deprecation notices for Bootstrap's @import-based source; the
+// Vite config silences them (official Bootstrap guidance), and they
+// never fail the build.
+
+// ---- Theme customization (values set here override Bootstrap) ----------
+// $primary: #0d6efd;
+// $border-radius: 0.5rem;
+// $enable-shadows: true;
+
+// ---- Bootstrap (import AFTER overrides) --------------------------------
+@import "bootstrap/scss/bootstrap";
+
+// ---- Application components built on Bootstrap's mixins ----------------
+// .sahil-card {
+//   @include border-radius($border-radius, $enable-shadows);
+// }
