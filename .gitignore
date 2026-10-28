@@ -23,3 +23,12 @@
 !/public/storage/.gitkeep
 !/public/storage/.htaccess
 .phpunit.result.cache
+
+# Additional generated/runtime artifacts
+/storage/framework/testing/
+/public/hot
+/.vite/
+/coverage/
+.DS_Store
+/.idea/
+/.vscode/

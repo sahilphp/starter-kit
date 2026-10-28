@@ -1,1 +1,0 @@
-import{i as e,n as t,r as n,t as r}from"./bootstrap.esm.js";var i=e((()=>{})),a=e((()=>{})),o=n((()=>{i(),a(),t(),window.bootstrap=r}));export default o();
