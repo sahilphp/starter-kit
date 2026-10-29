@@ -7,6 +7,7 @@ namespace App\Providers;
 use Sahil\Foundation\CentralExceptionHandler;
 use Sahil\Foundation\ServiceProvider;
 use Sahil\Http\Kernel;
+use Sahil\Http\Middleware\SecurityHeaders;
 use Sahil\Support\Logging\FileLogger;
 use Sahil\Support\Logging\LoggerContract;
 
@@ -53,6 +54,10 @@ final class ObservabilityProvider extends ServiceProvider
         if ($container->has(Kernel::class)) {
             /** @var Kernel $kernel */
             $kernel = $container->make(Kernel::class);
+
+            // Secure response headers are added for every request, before the
+            // exception handler is attached so error responses get them too.
+            $kernel = $kernel->using(new SecurityHeaders());
 
             $handler = $container->make(CentralExceptionHandler::class);
             $debug = $container->make(\Sahil\Contracts\Foundation\ApplicationContract::class)

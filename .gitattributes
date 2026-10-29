@@ -1,0 +1,12 @@
+# Files excluded from the distributed project (Composer dist archives).
+# tests/ and docs/ stay in the archive: a new project keeps its sample test
+# suite and deployment examples.
+/.gitattributes            export-ignore
+/.github                   export-ignore
+/phpstan.neon              export-ignore
+/composer.json.backup      export-ignore
+
+# Normalise line endings in the archive.
+* text=auto eol=lf
+*.php text eol=lf
+*.md  text eol=lf

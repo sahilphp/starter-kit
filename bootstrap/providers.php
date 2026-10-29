@@ -16,6 +16,7 @@ return [
     \App\Providers\ProxyProvider::class,
     \App\Providers\DatabaseProvider::class,
     \App\Providers\SessionProvider::class,
+    \App\Providers\EncryptionProvider::class,
     \App\Providers\StorageProvider::class,
     \App\Providers\AuthProvider::class,
     \App\Providers\RateLimitProvider::class,

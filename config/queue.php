@@ -28,4 +28,18 @@ return [
     'failed' => [
         'table' => env('FAILED_JOB_TABLE', 'failed_jobs'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Allowed job classes
+    |--------------------------------------------------------------------------
+    |
+    | Class names a queued payload is allowed to instantiate. When the list is
+    | empty, payloads are unserialized without restriction (queue rows are
+    | trusted application data). Set it in production to make object
+    | injection impossible even if the jobs table is tampered with:
+    |
+    |   'allowed_jobs' => [App\Jobs\SendWelcomeEmail::class, ...],
+    */
+    'allowed_jobs' => [],
 ];

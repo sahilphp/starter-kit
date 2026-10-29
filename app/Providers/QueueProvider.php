@@ -54,7 +54,7 @@ final class QueueProvider extends ServiceProvider
             return new FailedJobRepository($c->make(Connection::class), $table);
         });
 
-        $container->singleton(Worker::class, static function (Container $c): Worker {
+        $container->singleton(Worker::class, function (Container $c): Worker {
             $configuration = $c->make(ApplicationContract::class)->config();
 
             return new Worker(
@@ -64,7 +64,31 @@ final class QueueProvider extends ServiceProvider
                 (int) $configuration->get('queue.retry.max_attempts', 3),
                 (int) $configuration->get('queue.retry.delay', 0),
                 (int) $configuration->get('queue.work.sleep', 1),
+                null,
+                $this->allowedJobClasses($configuration->get('queue.allowed_jobs')),
             );
         });
+    }
+
+    /**
+     * Normalise the configured allow-list into class names.
+     *
+     * @return list<class-string>
+     */
+    private function allowedJobClasses(mixed $configured): array
+    {
+        if (!is_array($configured)) {
+            return [];
+        }
+
+        $classes = [];
+
+        foreach ($configured as $class) {
+            if (is_string($class) && $class !== '') {
+                $classes[] = $class;
+            }
+        }
+
+        return $classes;
     }
 }

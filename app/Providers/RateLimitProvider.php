@@ -48,8 +48,8 @@ final class RateLimitProvider extends ServiceProvider
             return new RateLimiter($container->make(StoreInterface::class));
         });
 
-        $this->app()->container()->singleton(Throttle::class, function () use ($store, $limit, $window): Throttle {
-            return new Throttle('api', $limit, $window, $store);
+        $this->app()->container()->singleton(Throttle::class, function () use ($store): Throttle {
+            return new Throttle('api', $store);
         });
     }
 }

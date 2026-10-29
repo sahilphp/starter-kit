@@ -32,3 +32,8 @@
 .DS_Store
 /.idea/
 /.vscode/
+/storage/framework/vite/
+/storage/framework/ui-backups/
+
+# Audit backup (never distributed)
+/composer.json.backup

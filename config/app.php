@@ -5,6 +5,9 @@ declare(strict_types=1);
 /** Framework core configuration. Every value here can be overridden in the environment or per installation deployment, never committed secrets belong in this file. */
 return [
     'name' => 'SahilPHP',
+    // Encryption and signing key (`base64:` + 32 random bytes). Generate one
+    // with `php bin/sahil key:generate`; never commit a real value.
+    'key' => env('APP_KEY'),
     'environment' => env('APP_ENV', 'development'),
     'debug' => env('APP_DEBUG', false),
     'url' => env('APP_URL', 'http://localhost:8000'),
