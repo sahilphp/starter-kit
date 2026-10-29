@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http;
 
+use Sahil\Contracts\Foundation\ApplicationContract;
 use Sahil\Contracts\View\ViewContract;
 use Sahil\Http\Response;
 
 /**
- * Renders the example home page (`views/pages/home.sahil.php`).
+ * Renders the example home page (`resources/views/pages/home.sahil.php`).
  *
  * This is the whole view API in one method: hand the engine a template name
  * and the data the template may read, and send the markup back. The template

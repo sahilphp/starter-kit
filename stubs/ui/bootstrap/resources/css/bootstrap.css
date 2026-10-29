@@ -1,0 +1,15 @@
+/* SahilPHP — Bootstrap 5. */
+@import "bootstrap/dist/css/bootstrap.css";
+
+/* SahilPHP neutral surface overrides (kept minimal so Bootstrap stays in charge). */
+:root {
+    --sahil-color-surface: #fff;
+    --sahil-color-text: #212529;
+    --sahil-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body {
+    background-color: var(--sahil-color-surface);
+    color: var(--sahil-color-text);
+    font-family: var(--sahil-font-sans);
+}

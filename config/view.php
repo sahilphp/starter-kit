@@ -18,7 +18,7 @@ declare(strict_types=1);
 
 return [
     'paths' => [
-        'views',
+        'resources/views',
     ],
 
     'cache' => 'storage/framework/views',

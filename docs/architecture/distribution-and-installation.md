@@ -168,12 +168,12 @@ path does not: `public/index.php` resolves the kernel but never calls it.
 | `routes/` | `web.php`, `schedule.php` | **Skeleton** | `WebRoutesProvider` loads `routes/web.php`; `ScheduleProvider` loads the schedule file. |
 | `database/` | 2 migrations (`jobs`, `failed_jobs`) and seeders directory | **Skeleton** | Application schema, not framework internals. |
 | `views/` | 15 templates: layouts, pages, examples, partials, plus a stray `welcome.blade.php` | **Skeleton** | Home page renders `views/pages/home.sahil.php`. |
-| `resources/` | 8 files: CSS, SCSS, JS, an unused `resources/views/welcome.blade.php` | **Skeleton (optional frontend)** | Source assets for optional UI profiles. |
+| `resources/` | Tailwind v4 CSS entry, an unused `resources/views/welcome.blade.php` | **Skeleton (optional frontend)** | The selected UI profile owns its entry points; switching profiles regenerates them. |
 | `dist/` | 4 stale CSS files | **Not part of a package** | Not referenced by runtime code; `public/build` is the configured build path. |
 | `storage/` | logs, framework cache/views/sessions/schedule, uploads | **Skeleton** | Must ship empty writable directories and ignore generated contents. |
 | `tests/` | 92 test files (framework and application-level mixed) | **Split** | Framework tests follow the framework package; application tests follow the skeleton. |
 | `docs/` | Architecture and feature documentation | **Both/framework docs** | Dist packaging can exclude non-runtime docs with `.gitattributes`. |
-| `package.json`, `vite.config.js`, `vite.bootstrap.config.js`, `tailwind.config.js`, `postcss.config.js` | Frontend build configuration | **Skeleton (optional)** | Node is only needed for optional UI asset commands. |
+| `package.json`, `vite.config.js` | Frontend build configuration for the selected profile | **Skeleton (optional)** | Node is only needed for optional UI asset commands. Tailwind v4 is CSS-first and needs no `tailwind.config.js` or PostCSS config. |
 | `.env.example` | 55 documented environment variables, placeholders only | **Skeleton** | `.env` remains local and ignored. |
 | `composer.lock` | Development lock file | **Framework repo (dev); application lock in skeleton** | Applications commit their own lock after the framework is published. |
 | `public/storage/` | `.gitkeep` and hardened `.htaccess` | **Skeleton** | Already whitelisted in `.gitignore`. |
@@ -363,9 +363,7 @@ tests/                        # app smoke/feature/CLI tests
 resources/                    # optional frontend sources
 theme/                        # optional Phase 7 tokens (user-owned)
 package.json                  # optional frontend tooling
-vite.config.js                # optional
-tailwind.config.js            # optional
-postcss.config.js             # optional
+vite.config.js                # optional, generated for the selected profile
 ```
 
 Target framework constraint:
@@ -563,9 +561,7 @@ my-project/
 ├── resources/                   # optional frontend sources
 ├── theme/                       # optional Phase 7 tokens and overrides
 ├── package.json                 # optional frontend tooling
-├── vite.config.js               # optional
-├── tailwind.config.js           # optional, when Tailwind is selected
-└── postcss.config.js            # optional
+└── vite.config.js               # optional, generated for the selected profile
 ```
 
 Not shipped in the skeleton package:

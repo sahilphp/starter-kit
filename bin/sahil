@@ -12,6 +12,7 @@ declare(strict_types=1);
  *
  * Usage:
  *   bin/sahil                     → show help (exit 0)
+ *   bin/sahil new [name]          → create a new application from this starter-kit
  *   bin/sahil about               → application facts
  *   bin/sahil config:show [ns]    → secret-safe configuration dump
  *   bin/sahil env:check           → documented environment variables
@@ -53,6 +54,9 @@ $printHelp = static function (int $exitCode = 0): never {
                [--queue=Name] [--once] [--max=N] [--all] [--at=...] [--only=Name]
 
         Commands:
+          new               Create a new SahilPHP application from this starter-kit.
+                            Interactive by default; non-interactive runs need
+                            a project name and --ui=tailwind|bootstrap.
           about             Show application info (name, environment, debug, PHP).
           config:show       Inspect configuration; secrets are always [redacted].
                             Optional namespace: config:show app
@@ -85,6 +89,15 @@ $printHelp = static function (int $exitCode = 0): never {
                             interactive prompt. REQUIRED in production for
                             migrate, migrate:rollback and db:seed.
                             (For ui:install this is an alias of --overwrite.)
+          --path=DIR        new: exact destination directory (default: ./<name>);
+                            ui:*/key:generate/storage:prepare: project root.
+          --ui=NAME         new: tailwind | bootstrap (required when
+                            non-interactive; --profile is an alias).
+          --no-interaction  new: never prompt (short form: -n).
+          --interactive     new: force prompts even when STDIN is not a TTY.
+          --no-install      new/ui:install: generate files without installing
+                            dependencies.
+          --no-dev          new: Composer install without development packages.
           --steps=N         migrate:rollback: reverse the newest N batches.
           --class=Name      db:seed: run only the named seeder.
           --queue=Name      queue commands: queue to use (default: configured).
@@ -112,6 +125,9 @@ $printHelp = static function (int $exitCode = 0): never {
           --json            ui:status/ui:theme: machine-readable output
 
         Examples:
+          bin/sahil new my-app
+          bin/sahil new my-app --ui=tailwind
+          bin/sahil new my-app --path=/tmp/my-app --ui=bootstrap --no-install
           bin/sahil key:generate
           bin/sahil storage:prepare
           bin/sahil ui:install tailwind
@@ -140,6 +156,16 @@ $flag = $args[0] ?? '--help';
 // booted application (no config, database or service providers). Handling
 // them first keeps `ui:*` usable in a fresh or partially configured project.
 require_once __DIR__ . '/../vendor/autoload.php';
+
+if ($flag === 'new') {
+    $workingDirectory = getcwd();
+
+    exit((new \Sahil\Installer\ProjectConsole())->run(
+        array_slice($args, 1),
+        dirname(__DIR__),
+        $workingDirectory === false ? dirname(__DIR__) : $workingDirectory,
+    ));
+}
 
 if (in_array($flag, \Sahil\Ui\UiConsole::COMMANDS, true)) {
     exit((new \Sahil\Ui\UiConsole())->run($flag, array_slice($args, 1), dirname(__DIR__)));

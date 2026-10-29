@@ -50,6 +50,23 @@ final class HttpEntryPointTest extends TestCase
         self::assertSame(PHP_VERSION, $payload['php']);
     }
 
+    public function test_home_page_uses_sahilphp_identity_and_session_cookie(): void
+    {
+        [$status, $body, $contentType, $headers] = $this->request('/');
+
+        self::assertSame(200, $status);
+        self::assertSame('text/html; charset=utf-8', $contentType);
+        self::assertStringContainsString('<meta name="generator" content="SahilPHP">', $body);
+        self::assertMatchesRegularExpression('/<title>\s*Welcome · SahilPHP\s*<\/title>/u', $body);
+        self::assertStringNotContainsString('laravel', strtolower($body));
+
+        $responseHeaders = implode("\n", $headers);
+
+        self::assertStringContainsString('Set-Cookie: sahil_session=', $responseHeaders);
+        self::assertStringNotContainsString('laravel_session', $responseHeaders);
+        self::assertStringNotContainsString('XSRF-TOKEN', $responseHeaders);
+    }
+
     public function test_unknown_paths_respond_with_safe_404(): void
     {
         [$status, $body] = $this->request('/no-such-page');
@@ -60,6 +77,7 @@ final class HttpEntryPointTest extends TestCase
             json_decode($body, true, 512, JSON_THROW_ON_ERROR),
             'kernel-rendered 404: status shown, no application internals'
         );
+        self::assertStringNotContainsString('laravel', strtolower($body));
     }
 
     public function test_no_stack_trace_or_installation_path_leaks_into_error_responses(): void
@@ -82,9 +100,9 @@ final class HttpEntryPointTest extends TestCase
     /**
      * Start the built-in server running the real front controller on this
      * test's port, wait for readiness, fetch the given path once, and answer
-     * with [status code, body, content-type].
+     * with [status code, body, content-type, headers].
      *
-     * @return array{0: int, 1: string, 2: string}
+     * @return array{0: int, 1: string, 2: string, 3: list<string>}
      */
     private function request(string $path): array
     {
@@ -119,7 +137,7 @@ final class HttpEntryPointTest extends TestCase
     /**
      * @param list<string> $headers
      *
-     * @return array{0: int, 1: string, 2: string}
+     * @return array{0: int, 1: string, 2: string, 3: list<string>}
      */
     private function parseResponse(string $path, string $body, array $headers): array
     {
@@ -140,7 +158,7 @@ final class HttpEntryPointTest extends TestCase
             self::fail($this->diagnostics($path, 'no HTTP status line', 'the response had no status line'));
         }
 
-        return [$status, $body, $contentType];
+        return [$status, $body, $contentType, $headers];
     }
 
     private function startBuiltInServer(): void

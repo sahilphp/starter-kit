@@ -1,15 +1,10 @@
 {
-    "name": "starter-kit",
+    "name": "sahilphp-app",
     "private": true,
     "scripts": {
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview"
     },
-    "devDependencies": {
-        "@tailwindcss/vite": "^4.3.3",
-        "bootstrap": "^5.3.8",
-        "tailwindcss": "^4.3.3",
-        "vite": "^8.3.5"
-    }
+    "devDependencies": {}
 }

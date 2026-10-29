@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 /** Framework core configuration. Every value here can be overridden in the environment or per installation deployment, never committed secrets belong in this file. */
 return [
-    'name' => 'SahilPHP',
+    // User-facing application name. Framework identity is separate so
+    // renaming an application never makes it claim to be a different framework.
+    'name' => env('APP_NAME', 'SahilPHP'),
+    'framework' => 'SahilPHP',
     // Encryption and signing key (`base64:` + 32 random bytes). Generate one
     // with `php bin/sahil key:generate`; never commit a real value.
     'key' => env('APP_KEY'),

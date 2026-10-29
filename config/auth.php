@@ -54,7 +54,10 @@ return [
     */
     'providers' => [
         'users' => [
-            'driver' => 'eloquent', // or 'database'
+            // SahilPHP's bundled user provider reads database rows directly;
+            // there is no Eloquent/ORM provider implied by this key.
+            'driver' => 'database',
+            'table' => env('AUTH_USERS_TABLE', 'users'),
             'model' => env('AUTH_USER_MODEL', \App\Models\User::class),
         ],
     ],

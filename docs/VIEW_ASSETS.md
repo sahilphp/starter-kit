@@ -170,7 +170,8 @@ The sample base layout (`views/layouts/app.sahil.php`) does this:
 
 ```php
 <head>
-    <title>@yield('title', 'SahilPHP')</title>
+    <meta name="generator" content="SahilPHP">
+    <title>@yield('title', app_name ?? 'SahilPHP')</title>
     @asset_client
     @asset_css('main')
     @yield('head')

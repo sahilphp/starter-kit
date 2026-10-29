@@ -24,7 +24,7 @@ final class HealthController
     public function payload(): array
     {
         /** @var string $frameworkName */
-        $frameworkName = $this->application->config()->get('app.name', 'SahilPHP');
+        $frameworkName = $this->application->config()->get('app.framework', 'SahilPHP');
 
         return [
             'status' => 'ok',

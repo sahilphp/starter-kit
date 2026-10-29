@@ -37,7 +37,7 @@ final class ViewProvider extends ServiceProvider
             $config = $application->config();
 
             /** @var list<string> $configured */
-            $configured = (array) $config->get('view.paths', ['views']);
+            $configured = (array) $config->get('view.paths', ['resources/views']);
 
             $roots = [];
 
