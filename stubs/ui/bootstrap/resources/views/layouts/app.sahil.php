@@ -1,12 +1,11 @@
-{{
--- Bootstrap 5 layout.
---}}
+{{-- Bootstrap 5 layout. --}}
 <!doctype html>
 <html lang="{{ lang ?? 'en' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="SahilPHP">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <title>@yield('title', app_name ?? 'SahilPHP')</title>
 
     {{-- Vite HMR client (development only) and the active profile's CSS. --}}

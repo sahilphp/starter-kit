@@ -14,7 +14,7 @@ export default defineConfig({
         emptyOutDir: false,
         rollupOptions: {
             input: {
-                bootstrap: 'resources/css/bootstrap.css',
+                bootstrap: 'resources/js/bootstrap.js',
             },
             output: {
                 entryFileNames: 'assets/[name].js',

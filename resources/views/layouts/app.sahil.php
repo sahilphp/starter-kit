@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="SahilPHP">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <title>@yield('title', app_name ?? 'SahilPHP')</title>
 
     {{-- Page-specific styles: define a `head` section in the page. --}}
