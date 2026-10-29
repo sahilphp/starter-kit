@@ -65,6 +65,65 @@ final class SampleViewsTest extends TestCase
         self::assertStringNotContainsString('tailwind.css', $html);
     }
 
+    public function test_root_views_directory_is_not_referenced(): void
+    {
+        $root = dirname(__DIR__, 2);
+
+        // The root-level `views/` directory must not exist; only
+        // `resources/views/` is the configured view directory.
+        self::assertDirectoryDoesNotExist($root.'/views', 'A root-level views/ directory must not ship in the starter kit.');
+
+        // No non-vendor source file may reference a root-level `views/` path.
+        $forbidden = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST
+        );
+
+        foreach ($iterator as $item) {
+            $path = $item->getPathname();
+            $relative = str_replace($root.DIRECTORY_SEPARATOR, '', $path);
+
+            if ($item->isDir()) {
+                continue;
+            }
+
+            if (str_contains($relative, '/vendor/')
+                || str_contains($relative, '/node_modules/')
+                || str_contains($relative, '/.git/')
+                || str_ends_with($relative, '.lock')
+                || str_ends_with($relative, '.cache')
+                || str_ends_with($relative, '.log')
+            ) {
+                continue;
+            }
+
+            if (!$item->isFile() || !is_readable($path)) {
+                continue;
+            }
+
+            $content = file_get_contents($path);
+
+            if ($content === false) {
+                continue;
+            }
+
+            // Matches path-style references to a root-level views/ directory
+            // (e.g. 'views', "views", views/, base_path('views')) while
+            // allowing the canonical resources/views and storage/framework/views.
+            if (preg_match("/(?:^|[^A-Za-z0-9_\/])views\/(?!resources\/)/", $content)
+                || preg_match("/['\"]views['\"]/", $content)
+            ) {
+                $forbidden[] = $relative;
+            }
+        }
+
+        self::assertEmpty($forbidden, sprintf(
+            'Root-level views/ directory referenced in: %s',
+            implode(', ', $forbidden)
+        ));
+    }
+
     public function test_both_sample_emits_both_selected_frameworks_once(): void
     {
         $html = $this->renderSample('both', 'examples.tailwind');
@@ -106,7 +165,7 @@ final class SampleViewsTest extends TestCase
 
         $assets = new AssetManager($workspace->base(), $profile, 'production');
         $engine = new ViewEngine(
-            new TemplateResolver([$root.'/views']),
+            new TemplateResolver([$root.'/resources/views']),
             new TemplateCompiler($workspace->cache()),
             $assets,
         );

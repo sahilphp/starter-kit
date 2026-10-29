@@ -2,7 +2,6 @@
 @import "tailwindcss";
 
 /* Templates and application classes scanned for utility names. */
-@source "../../views/**/*.sahil.php";
 @source "../../resources/views/**/*.sahil.php";
 @source "../../app/**/*.php";
 @source "../../resources/css/**/*.css";

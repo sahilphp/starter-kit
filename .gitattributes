@@ -1,12 +1,20 @@
-# Files excluded from the distributed project (Composer dist archives).
-# tests/ and docs/ stay in the archive: a new project keeps its sample test
-# suite and deployment examples.
-/.gitattributes            export-ignore
-/.github                   export-ignore
-/phpstan.neon              export-ignore
-/composer.json.backup      export-ignore
+# Files excluded from the distributed package (Composer dist archives).
+/docs                    export-ignore
+/tests                   export-ignore
+/scripts                 export-ignore
+/.github                 export-ignore
+/.sahil-ui.json          export-ignore
+/CHANGELOG.md            export-ignore
+/CODE_OF_CONDUCT.md      export-ignore
+/CONTRIBUTING.md         export-ignore
+/SECURITY.md             export-ignore
+/phpunit.xml.dist        export-ignore
+/phpstan.neon.dist       export-ignore
+/.gitattributes          export-ignore
+/.gitignore              export-ignore
+
+# License: starter kit does NOT ship framework LICENSE into user project
+LICENSE                export-ignore
 
 # Normalise line endings in the archive.
 * text=auto eol=lf
-*.php text eol=lf
-*.md  text eol=lf

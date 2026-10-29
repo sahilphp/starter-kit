@@ -21,13 +21,16 @@ use Sahil\Http\Response;
  */
 final class HomeController
 {
-    public function __construct(private readonly ViewContract $views)
-    {
+    public function __construct(
+        private readonly ViewContract $views,
+        private readonly ApplicationContract $application,
+    ) {
     }
 
     public function response(): Response
     {
         return Response::html($this->views->render('pages.home', [
+            'app_name' => (string) $this->application->config()->get('app.name', 'SahilPHP'),
             'title' => 'Welcome',
             'heading' => 'SahilPHP templates',
             'posts' => [
