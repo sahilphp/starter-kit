@@ -37,3 +37,4 @@
 
 # Audit backup (never distributed)
 /composer.json.backup
+composer.lock

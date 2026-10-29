@@ -14,9 +14,14 @@
         "issues": "https://github.com/sahilphp/starter-kit/issues",
         "source": "https://github.com/sahilphp/starter-kit"
     },
-    "keywords": ["sahilphp", "starter-kit", "application", "framework"],
+    "keywords": [
+        "sahilphp",
+        "starter-kit",
+        "application",
+        "framework"
+    ],
     "require": {
-        "php": "^8.1",
+        "php": "^8.4",
         "sahilphp/framework": "^1.0"
     },
     "require-dev": {
@@ -42,5 +47,10 @@
         ]
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "config": {
+        "platform": {
+            "php": "8.4.0"
+        }
+    }
 }

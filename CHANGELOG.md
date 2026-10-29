@@ -6,7 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-10-29
+## [1.0.0]
+
+### Fixed
+- Enforced PHP 8.4 minimum version requirement in composer.json, tooling, and code
+
+## Unreleased - 2026-10-29
 
 First public release.
 
@@ -30,7 +35,7 @@ First public release.
 
 ### Changed
 
-- Requires `sahilphp/framework: ^1.0` and PHP `^8.1` (was `^8.4` with a
+- Requires `sahilphp/framework: ^1.0` and PHP 8.4+ (was `^8.4` with a
   `path` repository and `^1.0@dev`).
 - `Throttle` is constructed with an explicit store, matching the framework.
 - PHPUnit moved to `^10.5`.

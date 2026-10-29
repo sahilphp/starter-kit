@@ -11,7 +11,41 @@ entry points and tests.
 
 ## Requirements
 
-- **PHP 8.1+** (this kit's `composer.json` requires `^8.1`)
+
+
+## Server requirements
+
+PHP 8.4+ is required to run this application. Most shared hosts offer
+PHP 8.4 or newer. If your host is running an older PHP version, you will need
+to upgrade or switch to a different hosting provider.
+
+Required extensions:
+- ext-mbstring
+- ext-json
+- ext-openssl
+- ext-pdo (MySQL/PostgreSQL database)
+- ext-ctype
+- ext-tokenizer
+- ext-fileinfo
+
+Optional extensions:
+- ext-gd (image manipulation)
+- ext-xmlreader
+- ext-xmlwriter
+
+Optional: A writable `storage/` directory (it ships with `.gitkeep` files)
+Optional: MySQL or PostgreSQL for database-backed features
+
+The application boots with sensible defaults when no `.env` file is present:
+- `APP_ENV=development`
+- `APP_DEBUG=false`
+- `APP_TIMEZONE=UTC`
+
+For production deployment, set `APP_ENV=production` and `APP_DEBUG=false`.
+
+See the [PHP documentation](https://www.php.net/) for installation instructions.
+
+- **PHP 8.4+** (this kit's `composer.json` requires `^8.4`)
 - **Composer 2.x**
 - **Node.js 20.19+ or 22.12+ with npm** — only for the optional frontend
   asset commands (`npm run dev`, `bin/sahil ui:build`). The PHP application
