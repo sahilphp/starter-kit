@@ -138,6 +138,10 @@ package. Output: `public/build/assets/app.css`.
 - `vite.config.js` — `emptyOutDir: false` (so multiple profile builds do not
   delete each other), `cacheDir: storage/framework/vite`, deterministic
   unhashed asset names and a `127.0.0.1:5173` dev server default.
+  `server.watch.ignored` keeps `storage/`, `public/build/`, `vendor/`,
+  `node_modules/` and `.git/` out of the watcher: logs, sessions, compiled
+  views and Vite's own cache are rewritten while the app serves requests, and
+  watching them makes the dev server reload the page in a loop.
 - `.gitignore` — appends `/node_modules/`, `/public/build/`, `/.vite/`,
   `/storage/framework/vite/` and `/storage/framework/ui-backups/` only when
   missing.

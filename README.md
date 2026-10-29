@@ -148,12 +148,19 @@ php bin/sahil storage:prepare  # create any missing storage directories
 Start the development server from the project root:
 
 ```bash
-composer start
-# equivalent: php -S 127.0.0.1:8000 -t public public/index.php
+php sahil start                    # http://127.0.0.1:8000
+php sahil start --port=8088        # a different port
+php sahil start --host=0.0.0.0 --port=8088
+composer start -- --port=8088      # the same command through Composer
 ```
 
-Note `-t public`: it sets the document root so static assets under `public/`
-are served. Starting the router script without it makes every asset URL 404.
+`php sahil <command>` runs every CLI command without the `bin/` prefix;
+`php bin/sahil start` is the identical command. When the port is already taken,
+`start` says so and prints the next free port instead of failing with
+Composer's raw script error.
+
+`start` runs `php -S 127.0.0.1:8000 -t public public/index.php` for you:
+`-t public` sets the document root so static assets under `public/` are served.
 
 Then check it:
 
@@ -318,7 +325,7 @@ are skipped unless `SAHIL_DB_TEST_MYSQL` / `SAHIL_DB_TEST_PGSQL` are set.
 | Symptom | Cause and fix |
 |---|---|
 | `The url supplied for the path (../framework) repository does not exist` | Clone the framework repository next to this one (see Installation). |
-| CSS/JS links return 404 | Use `composer start` (or `php -S … -t public …`); starting only the router script leaves static assets unreachable. |
+| CSS/JS links return 404 | Use `php sahil start` (or `composer start -- --port=8088`); starting only the router script leaves static assets unreachable. |
 | `/` and `/ui-kit` return `500 {"error":"server_error"}` with `APP_ENV=production` | Build the assets: `php bin/sahil ui:build --clean` (they are gitignored). |
 | Pages render unstyled in development | Start Vite (`npm run dev` or `sahil ui:dev`); the layouts point at `http://127.0.0.1:5173`. |
 | `ui:status` reports missing sources or packages | Run `php bin/sahil ui:install` (and `npm ci` if packages are missing). |

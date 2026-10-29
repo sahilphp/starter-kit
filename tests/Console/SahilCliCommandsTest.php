@@ -56,7 +56,7 @@ final class SahilCliCommandsTest extends ApplicationTestCase
             ->assertFailed()
             ->assertExitCode(1)
             ->assertOutputContains('Unknown option')
-            ->assertOutputContains('Usage: bin/sahil');
+            ->assertOutputContains('Usage: php sahil');
     }
 
     public function test_version_prints_framework_and_php_versions(): void

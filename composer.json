@@ -38,7 +38,7 @@
         }
     },
     "scripts": {
-        "start": "php -S 127.0.0.1:8000 -t public public/index.php",
+        "start": "@php sahil start",
         "test": "phpunit --configuration phpunit.xml --colors=always",
         "post-create-project-cmd": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",

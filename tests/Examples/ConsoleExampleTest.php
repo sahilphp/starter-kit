@@ -35,7 +35,7 @@ final class ConsoleExampleTest extends ApplicationTestCase
         $this->runCommand(['not:a-command'])
             ->assertFailed()
             ->assertOutputContains('Unknown option')
-            ->assertOutputContains('Usage: bin/sahil');
+            ->assertOutputContains('Usage: php sahil');
     }
 
     public function test_version_flag_reports_php_version(): void

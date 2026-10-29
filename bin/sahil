@@ -18,6 +18,7 @@ declare(strict_types=1);
  *   bin/sahil env:check           → documented environment variables
  *   bin/sahil key:generate        → write a new APP_KEY to .env
  *   bin/sahil storage:prepare     → create the writable storage directories
+ *   bin/sahil start [--host=H] [--port=P] → run the development server
  *   bin/sahil ui:install [profile] → install Tailwind/Bootstrap/plain UI assets
  *   bin/sahil ui:dev              → Vite development server
  *   bin/sahil ui:build            → production asset build
@@ -33,6 +34,9 @@ declare(strict_types=1);
  *   bin/sahil schedule:list [--at=...]
  *   bin/sahil schedule:run [--at=...] [--only=name]
  *   bin/sahil --version           → print versions
+ *
+ * The project root ships an equivalent entry point, so `php sahil <command>`
+ * runs the same CLI without the `bin/` prefix.
  *
  * Destructive operations (rollback, seeding, any production schema change)
  * require deliberate operator intent: see `--force` in the help output and
@@ -56,8 +60,10 @@ $printHelp = static function (int $exitCode = 0): never {
     $help = <<<TEXT
         SahilPHP
 
-        Usage: bin/sahil <command|option> [--force] [--steps=N] [--class=Name]
+        Usage: php sahil <command|option> [--force] [--steps=N] [--class=Name]
                [--queue=Name] [--once] [--max=N] [--all] [--at=...] [--only=Name]
+
+        php bin/sahil <command> runs the same CLI from the bin directory.
 
         Commands:
           new               Create a new SahilPHP application from this starter-kit.
@@ -70,6 +76,9 @@ $printHelp = static function (int $exitCode = 0): never {
                             (names printed only; values are never shown).
           key:generate      Write a new APP_KEY to .env (--force replaces one).
           storage:prepare   Create the writable storage directories.
+          start             Run the PHP development server (default
+                            127.0.0.1:8000). Alias: serve. A busy port is
+                            reported with the next free port to use.
           ui:install        Install a frontend asset profile (Tailwind v4,
                             Bootstrap 5, both, or plain CSS).
           ui:dev            Run the Vite development server.
@@ -113,6 +122,8 @@ $printHelp = static function (int $exitCode = 0): never {
           --at=DATETIME     schedule commands: evaluate at this instant instead
                             of now ("Y-m-d H:i[:s]", in the schedule timezone).
           --only=Name       schedule:run: run only the named task.
+          --host=HOST       start: interface to bind (default 127.0.0.1).
+          --port=PORT       start: TCP port to bind (default 8000).
           --help            Show this help text.
           --version         Print framework and PHP versions.
 
@@ -136,6 +147,9 @@ $printHelp = static function (int $exitCode = 0): never {
           bin/sahil new my-app --path=/tmp/my-app --ui=bootstrap --no-install
           bin/sahil key:generate
           bin/sahil storage:prepare
+          php sahil start
+          php sahil start --port=8088
+          php sahil start --host=0.0.0.0 --port=8088
           bin/sahil ui:install tailwind
           bin/sahil ui:install bootstrap --no-install
           bin/sahil ui:install both --merge
@@ -145,7 +159,14 @@ $printHelp = static function (int $exitCode = 0): never {
           bin/sahil ui:status --json
 
         Development server:
-          composer start   (equivalent to: php -S 127.0.0.1:8000 public/index.php)
+          php sahil start                             127.0.0.1:8000
+          php bin/sahil start                         same CLI, bin path
+          php sahil start --port=8088                 any free port
+          php sahil start --host=0.0.0.0 --port=8088  bind all interfaces
+          composer start -- --port=8088               Composer needs the -- separator
+
+          When the port is already taken the command reports it and prints the
+          next free port instead of failing with Composer's raw script error.
 
         Status endpoints:
           GET /health      JSON health payload.
@@ -261,6 +282,146 @@ if (in_array($flag, ['key:generate', 'storage:prepare'], true)) {
         ? "storage: ready.\n"
         : sprintf("%d director%s created; storage ready.\n", $created, $created === 1 ? 'y' : 'ies'));
     exit(0);
+}
+
+// ---------------------------------------------------------------------------
+// Development server. It needs only the project directory, so it runs before
+// the application boots — a missing APP_KEY or database never blocks it — and
+// PHP's own server output and exit code are passed straight through.
+// ---------------------------------------------------------------------------
+if ($flag === 'start' || $flag === 'serve') {
+    $startArguments = array_slice($args, 1);
+
+    if (in_array('--help', $startArguments, true) || in_array('-h', $startArguments, true)) {
+        $printHelp();
+    }
+
+    $host = '127.0.0.1';
+    $portValue = null;
+
+    for ($index = 0; $index < count($startArguments); $index++) {
+        $option = (string) $startArguments[$index];
+
+        if ($option === '--host' || $option === '--port') {
+            $value = (string) ($startArguments[$index + 1] ?? '');
+            $index++;
+
+            if ($option === '--host') {
+                $host = $value;
+            } else {
+                $portValue = $value;
+            }
+
+            continue;
+        }
+
+        if (str_starts_with($option, '--host=')) {
+            $host = substr($option, 7);
+
+            continue;
+        }
+
+        if (str_starts_with($option, '--port=')) {
+            $portValue = substr($option, 7);
+
+            continue;
+        }
+
+        fwrite(STDERR, sprintf("start: unknown option [%s].\n", $option));
+        fwrite(STDERR, "usage: php sahil start [--host=127.0.0.1] [--port=8000]\n");
+        exit(1);
+    }
+
+    $portText = $portValue === null ? '8000' : trim($portValue);
+
+    if (preg_match('/^\d{1,5}$/', $portText) !== 1 || (int) $portText < 1 || (int) $portText > 65535) {
+        fwrite(STDERR, sprintf(
+            "start: invalid port [%s]; use a number between 1 and 65535.\n",
+            $portValue === null ? '' : $portValue
+        ));
+        exit(1);
+    }
+
+    $port = (int) $portText;
+    $host = trim($host);
+
+    if ($host === '' || preg_match('/^[A-Za-z0-9._:\[\]-]+$/', $host) !== 1) {
+        fwrite(STDERR, sprintf(
+            "start: invalid host [%s]; use an address such as 127.0.0.1, localhost or 0.0.0.0.\n",
+            $host
+        ));
+        exit(1);
+    }
+
+    // IPv6 literals are bracketed inside a socket address.
+    $bindHost = str_contains($host, ':') && !str_starts_with($host, '[') ? '[' . $host . ']' : $host;
+    $bindAddress = $bindHost . ':' . $port;
+
+    $socketError = 0;
+    $socketMessage = '';
+    $probe = @stream_socket_server('tcp://' . $bindAddress, $socketError, $socketMessage);
+
+    if ($probe === false) {
+        $suggestion = null;
+
+        for ($candidate = $port + 1; $candidate <= min(65535, $port + 20); $candidate++) {
+            $free = @stream_socket_server('tcp://' . $bindHost . ':' . $candidate);
+
+            if ($free !== false) {
+                fclose($free);
+                $suggestion = $candidate;
+
+                break;
+            }
+        }
+
+        fwrite(STDERR, sprintf(
+            "start: %s:%d is already in use or unavailable%s.\n",
+            $host,
+            $port,
+            $socketMessage === '' ? '' : ' (' . $socketMessage . ')'
+        ));
+        fwrite(STDERR, $suggestion === null
+            ? "  try: php sahil start --port=<another-port>\n"
+            : sprintf("  try: php sahil start --port=%d\n", $suggestion));
+        fwrite(STDERR, "  usage: php sahil start [--host=127.0.0.1] [--port=8000]\n");
+        exit(1);
+    }
+
+    fclose($probe);
+
+    $root = dirname(__DIR__);
+
+    fwrite(STDOUT, "SahilPHP development server\n");
+    fwrite(STDOUT, sprintf("  http://%s:%d\n", $bindHost, $port));
+    fwrite(STDOUT, sprintf("  document root: %s/public\n", $root));
+    fwrite(STDOUT, "  press Ctrl-C to stop\n\n");
+
+    // The banner must reach a redirected log before the process is replaced.
+    fflush(STDOUT);
+
+    $serverArguments = ['-S', $bindAddress, '-t', $root . '/public', $root . '/public/index.php'];
+
+    // Replace this process with the server when pcntl is available: Ctrl-C,
+    // exit codes and "stop the process" then apply to the server itself rather
+    // than to a wrapper that could leave it running.
+    if (function_exists('pcntl_exec')) {
+        pcntl_exec(PHP_BINARY, $serverArguments);
+    }
+
+    $server = proc_open(
+        [PHP_BINARY, ...$serverArguments],
+        [0 => STDIN, 1 => STDOUT, 2 => STDERR],
+        $pipes,
+        $root
+    );
+
+    if (!is_resource($server)) {
+        fwrite(STDERR, "start: unable to launch the PHP development server.\n");
+        exit(1);
+    }
+
+    exit(proc_close($server));
 }
 
 try {

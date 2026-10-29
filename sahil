@@ -1,0 +1,39 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * `php sahil <command>` — the SahilPHP CLI from the project root.
+ *
+ * The command implementations live in `bin/sahil`; this entry point exists so
+ * the familiar `php sahil start`, `php sahil migrate` and friends work without
+ * the `bin/` prefix. It re-executes bin/sahil with the same PHP binary and the
+ * same arguments, so exit codes, interactive prompts and Ctrl-C behave exactly
+ * as they do through `php bin/sahil`.
+ */
+
+$script = __DIR__ . '/bin/sahil';
+
+if (!is_file($script)) {
+    fwrite(STDERR, "sahil: bin/sahil is missing from this project.\n");
+    exit(1);
+}
+
+$arguments = array_slice($argv, 1);
+
+// Replace this process when pcntl is available: no wrapper process, and the
+// child's exit status and signal handling are identical.
+if (function_exists('pcntl_exec')) {
+    pcntl_exec(PHP_BINARY, array_merge([$script], $arguments));
+}
+
+$command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($script);
+
+foreach ($arguments as $argument) {
+    $command .= ' ' . escapeshellarg($argument);
+}
+
+passthru($command, $exitCode);
+
+exit((int) $exitCode);
