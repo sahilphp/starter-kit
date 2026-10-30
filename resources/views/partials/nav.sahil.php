@@ -2,12 +2,17 @@
     Shared navigation component.
 
     Layouts pass framework-specific classes and the link list, so the same
-    markup works with Tailwind, Bootstrap and plain CSS. Every attribute is
-    escaped by the default `{{ }}` channel.
+    markup works with Tailwind, Bootstrap and plain CSS. The brand slot always
+    renders the official SahilPHP logo through `partials.brand`; a caller can
+    override it with `brand_partial`.
 --}}
 <header class="{{ header_class ?? 'site-header' }}">
     <nav class="{{ nav_class ?? 'site-nav' }}" aria-label="Main navigation">
-        <a class="{{ brand_class ?? 'site-brand' }}" href="{{ home_url ?? '/' }}">{{ brand ?? 'SahilPHP' }}</a>
+        @include(brand_partial ?? 'partials.brand', [
+            'home_url' => home_url ?? '/',
+            'class' => brand_class ?? 'brand',
+            'variant' => brand_variant ?? 'wordmark',
+        ])
 
         <ul class="{{ list_class ?? 'site-nav__list' }}">
             @foreach (links as link)

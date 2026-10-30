@@ -4,24 +4,62 @@ Templates live here, are compiled to `storage/framework/views/`, and are
 never executed directly. The language and its directives are documented in
 [`docs/TEMPLATE_LANGUAGE.md`](../docs/TEMPLATE_LANGUAGE.md).
 
-## Example set
+## Brand
 
-- `layouts/app.sahil.php` — shared base layout with asset and page slots;
-- `layouts/tailwind.sahil.php`, `layouts/bootstrap.sahil.php`,
-  `layouts/plain.sahil.php` — sample shells for each UI profile;
-- `partials/nav.sahil.php` — shared navigation that accepts framework class
-  names as data;
+`partials/brand.sahil.php` renders the official SahilPHP logo:
+
+```php
+@include('partials.brand')                                  # lockup: mark + wordmark
+@include('partials.brand', ['variant' => 'mark'])           # mark only (footers)
+```
+
+Every layout loads the same favicon set (`favicon.ico`, `apple-touch-icon.png`)
+and the welcome, auth and dashboard pages show the lockup, so a new project
+looks finished before any code is written. The asset files are:
+
+| File | Purpose |
+|---|---|
+| `public/favicon.ico` | Browser tab icon |
+| `public/logo.png` | Official lockup used in navigation and heroes |
+| `public/logo-mark.png` | Mark only, for compact surfaces |
+| `public/apple-touch-icon.png` | iOS home-screen icon |
+
+## Base set
+
+- `layouts/app.sahil.php` — plain-profile layout: brand stylesheet, favicon
+  set, navigation and footer;
+- `layouts/auth.sahil.php`, `layouts/dashboard.sahil.php` — added by
+  `php sahil make:auth` (don't exist until you generate them);
+- `partials/brand.sahil.php` — the logo links described above;
+- `partials/nav.sahil.php` — shared navigation that renders the brand and
+  accepts framework class names as data;
 - `partials/field.sahil.php`, `partials/select.sahil.php`,
   `partials/alert.sahil.php`, `partials/table.sahil.php` — reusable
   components with escaped values;
-- `partials/post-meta.sahil.php` — the original small partial;
-- `pages/home.sahil.php` — the home page, using inheritance, sections,
-  loops, conditionals and partials;
-- `examples/tailwind.sahil.php`, `examples/bootstrap.sahil.php`,
-  `examples/plain.sahil.php` — forms, validation errors, alerts, tables,
-  navigation and responsive layouts for each profile.
+- `pages/home.sahil.php` — the welcome page: logo hero, quick-start commands
+  and feature cards;
+- `examples/plain.sahil.php` — forms, validation errors, alerts, tables and
+  navigation for the plain profile.
 
-`GET /ui-kit` renders the example page that matches the active UI profile.
+Installing a UI profile (`php sahil ui:install tailwind|bootstrap`) replaces
+the layout, navigation, welcome, error and example templates with that
+profile's versions. `GET /ui-kit` renders the example page that matches the
+active profile.
+
+## Authentication pages
+
+`php sahil make:auth` adds the templates behind `/login`, `/register`,
+`/forgot-password`, `/reset-password/{token}` and `/dashboard`:
+
+- `auth/login.sahil.php`, `auth/register.sahil.php`,
+  `auth/forgot-password.sahil.php`, `auth/reset-password.sahil.php`;
+- `layouts/auth.sahil.php` — centered card shell;
+- `layouts/dashboard.sahil.php` — sidebar shell;
+- `pages/dashboard.sahil.php` — metrics, activity table and starter tasks.
+
+Tailwind projects receive shadcn/ui-style pages; Bootstrap projects receive a
+Bootstrap 5 design. The pages render demo data from `App\Http\AuthController`
+and do not authenticate anyone.
 
 ## Assets
 
@@ -36,7 +74,7 @@ Use the runtime helpers rather than hard-coded URLs:
 Page-specific files go in the layout's `head` and `scripts` sections:
 
 ```php
-@extends('layouts.tailwind')
+@extends('layouts.app')
 
 @section('head')
     <link rel="stylesheet" href="{{ asset('css/ui-kit.css') }}">
@@ -50,7 +88,7 @@ Page-specific files go in the layout's `head` and `scripts` sections:
 See [`docs/VIEW_ASSETS.md`](../docs/VIEW_ASSETS.md) for profile selection,
 configuration, escaping and the full helper reference.
 
-The optional theme layer (`php bin/sahil ui:theme`) changes the neutral
+The optional theme layer (`php sahil ui:theme`) changes the neutral
 `--sahil-*` variables used by the plain layout and by generated framework
 mappings. Application overrides belong in `resources/css/theme.overrides.css`;
 see [`docs/THEMING.md`](../docs/THEMING.md).

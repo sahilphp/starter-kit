@@ -6,10 +6,77 @@
     --sahil-color-surface: #fff;
     --sahil-color-text: #212529;
     --sahil-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+    /* Brand tokens: the framework blue from the official logo. */
+    --sahil-brand: #0b6fe8;
+    --sahil-brand-dark: #0a60c9;
+    --sahil-brand-accent: #1fb6ff;
+    --bs-primary: var(--sahil-brand);
+    --bs-primary-rgb: 11, 111, 232;
+    --bs-link-color: var(--sahil-brand);
+    --bs-link-color-rgb: 11, 111, 232;
+    --bs-link-hover-color: var(--sahil-brand-dark);
+    --bs-link-hover-color-rgb: 10, 96, 201;
 }
 
 body {
     background-color: var(--sahil-color-surface);
     color: var(--sahil-color-text);
     font-family: var(--sahil-font-sans);
+}
+
+/* Brand ---------------------------------------------------------------- */
+
+.brand__logo {
+    height: 2.1rem;
+    width: auto;
+}
+
+.brand__logo--mark {
+    height: 2.25rem;
+}
+
+.brand-text {
+    background: linear-gradient(90deg, var(--sahil-brand), var(--sahil-brand-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Primary buttons and links follow the brand colour. */
+.btn-primary {
+    --bs-btn-bg: var(--sahil-brand);
+    --bs-btn-border-color: var(--sahil-brand);
+    --bs-btn-hover-bg: var(--sahil-brand-dark);
+    --bs-btn-hover-border-color: var(--sahil-brand-dark);
+    --bs-btn-active-bg: var(--sahil-brand-dark);
+    --bs-btn-active-border-color: var(--sahil-brand-dark);
+    --bs-btn-disabled-bg: var(--sahil-brand);
+    --bs-btn-disabled-border-color: var(--sahil-brand);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--sahil-brand);
+    --bs-btn-border-color: var(--sahil-brand);
+    --bs-btn-hover-bg: var(--sahil-brand);
+    --bs-btn-hover-border-color: var(--sahil-brand);
+    --bs-btn-active-bg: var(--sahil-brand-dark);
+    --bs-btn-active-border-color: var(--sahil-brand-dark);
+}
+
+/* Welcome page surfaces ------------------------------------------------ */
+
+.hero-glow {
+    background: radial-gradient(50% 60% at 50% 0%, rgba(11, 111, 232, 0.12), transparent 70%);
+}
+
+.feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.65rem;
+    background: rgba(11, 111, 232, 0.1);
+    color: var(--sahil-brand);
 }

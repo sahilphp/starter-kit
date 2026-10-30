@@ -234,10 +234,14 @@ In HTML forms, include the CSRF token as a hidden input:
 
 ```html
 <form method="POST" action="/submit">
-    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="_token" value="{{ csrf_token }}">
     <!-- other form fields -->
 </form>
 ```
+
+The template language only exposes its whitelisted helpers, so the token is
+passed in as data: the controller renders the view with
+`'csrf_token' => csrf_token()`.
 
 ### Including CSRF Tokens in AJAX Requests
 

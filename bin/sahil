@@ -18,6 +18,7 @@ declare(strict_types=1);
  *   bin/sahil env:check           → documented environment variables
  *   bin/sahil key:generate        → write a new APP_KEY to .env
  *   bin/sahil storage:prepare     → create the writable storage directories
+ *   bin/sahil make:auth [--ui=P]  → scaffold login/register/dashboard pages
  *   bin/sahil start [--host=H] [--port=P] → run the development server
  *   bin/sahil ui:install [profile] → install Tailwind/Bootstrap/plain UI assets
  *   bin/sahil ui:dev              → Vite development server
@@ -76,9 +77,14 @@ $printHelp = static function (int $exitCode = 0): never {
                             (names printed only; values are never shown).
           key:generate      Write a new APP_KEY to .env (--force replaces one).
           storage:prepare   Create the writable storage directories.
+          make:auth         Generate login, register, forgot-password,
+                            reset-password and dashboard pages for the
+                            installed UI profile (shadcn/ui style for
+                            Tailwind, Bootstrap 5 design for Bootstrap).
+                            Existing pages are kept unless --force is given.
           start             Run the PHP development server (default
-                            127.0.0.1:8000). Alias: serve. A busy port is
-                            reported with the next free port to use.
+                            127.0.0.1:8000). Alias: serve. A busy port
+                            falls back to the next free port automatically.
           ui:install        Install a frontend asset profile (Tailwind v4,
                             Bootstrap 5, both, or plain CSS).
           ui:dev            Run the Vite development server.
@@ -124,6 +130,8 @@ $printHelp = static function (int $exitCode = 0): never {
           --only=Name       schedule:run: run only the named task.
           --host=HOST       start: interface to bind (default 127.0.0.1).
           --port=PORT       start: TCP port to bind (default 8000).
+          --ui=NAME         make:auth: tailwind | bootstrap (default: the
+                            profile recorded in .sahil-ui.json or package.json).
           --help            Show this help text.
           --version         Print framework and PHP versions.
 
@@ -137,8 +145,9 @@ $printHelp = static function (int $exitCode = 0): never {
                             storage/framework/ui-backups/
           --no-install      scaffold files without running the package manager
           --clean           ui:build: remove public/build before building
-          --host=HOST       ui:dev: bind Vite to HOST
-          --port=PORT       ui:dev: use PORT
+          --host=HOST       ui:dev: bind Vite to HOST (default 127.0.0.1)
+          --port=PORT       ui:dev: first port to try (default 5173; a busy
+                            port falls back to the next free one)
           --json            ui:status/ui:theme: machine-readable output
 
         Examples:
@@ -147,6 +156,9 @@ $printHelp = static function (int $exitCode = 0): never {
           bin/sahil new my-app --path=/tmp/my-app --ui=bootstrap --no-install
           bin/sahil key:generate
           bin/sahil storage:prepare
+          php sahil make:auth
+          php sahil make:auth --ui=bootstrap
+          php sahil make:auth --force
           php sahil start
           php sahil start --port=8088
           php sahil start --host=0.0.0.0 --port=8088
@@ -164,9 +176,24 @@ $printHelp = static function (int $exitCode = 0): never {
           php sahil start --port=8088                 any free port
           php sahil start --host=0.0.0.0 --port=8088  bind all interfaces
           composer start -- --port=8088               Composer needs the -- separator
+          php sahil ui:dev                            Vite on 5173 or the next free port
 
-          When the port is already taken the command reports it and prints the
-          next free port instead of failing with Composer's raw script error.
+          When the port is already taken the command starts on the next free
+          port and prints both, so Composer never reports a raw
+          "Address already in use" script error.
+
+        Authentication pages:
+          php sahil make:auth                     pages for the installed profile
+          php sahil make:auth --ui=bootstrap      choose a profile explicitly
+          php sahil make:auth --force             replace pages that exist
+          php sahil make:auth --dry-run           print the plan, write nothing
+
+          Generated: app/Http/AuthController.php, routes/auth.php and the
+          resources/views/{auth,layouts,partials,pages} templates behind
+          /login, /register, /forgot-password, /reset-password/{token} and
+          /dashboard. routes/auth.php is loaded automatically when it exists.
+          Pages render as-is; wire AuthManager and PasswordReset into
+          routes/auth.php to turn them into real accounts.
 
         Status endpoints:
           GET /health      JSON health payload.
@@ -196,6 +223,118 @@ if ($flag === 'new') {
 
 if (in_array($flag, \Sahil\Ui\UiConsole::COMMANDS, true)) {
     exit((new \Sahil\Ui\UiConsole())->run($flag, array_slice($args, 1), dirname(__DIR__)));
+}
+
+// ---------------------------------------------------------------------------
+// Authentication page scaffold. Like the UI commands it only touches the
+// project directory, so it works before the application (key, database) is
+// configured. Existing pages are kept unless --force is passed.
+// ---------------------------------------------------------------------------
+if ($flag === 'make:auth') {
+    $root = dirname(__DIR__);
+    $profile = null;
+    $force = false;
+    $dryRun = false;
+    $usage = "usage: php sahil make:auth [--ui=tailwind|bootstrap] [--force] [--dry-run] [--path=DIR]\n";
+
+    foreach (array_slice($args, 1) as $option) {
+        if ($option === '--help' || $option === '-h') {
+            $printHelp();
+        }
+
+        if ($option === '--force') {
+            $force = true;
+
+            continue;
+        }
+
+        if ($option === '--dry-run') {
+            $dryRun = true;
+
+            continue;
+        }
+
+        if (str_starts_with($option, '--path=')) {
+            $root = rtrim(substr($option, 7), '/');
+
+            continue;
+        }
+
+        if (str_starts_with($option, '--ui=') || str_starts_with($option, '--profile=')) {
+            $value = substr($option, strpos($option, '=') + 1);
+            $profile = \Sahil\Ui\Profile::resolve($value);
+
+            if ($profile === null) {
+                fwrite(STDERR, sprintf("make:auth: unknown UI profile [%s]; use tailwind or bootstrap.\n", $value));
+                exit(1);
+            }
+
+            continue;
+        }
+
+        fwrite(STDERR, sprintf("make:auth: unknown option [%s].\n", $option));
+        fwrite(STDERR, $usage);
+        exit(1);
+    }
+
+    if ($root === '' || !is_dir($root)) {
+        fwrite(STDERR, sprintf("make:auth: project directory [%s] does not exist.\n", $root));
+        exit(1);
+    }
+
+    if ($profile === null) {
+        [$detected] = (new \Sahil\Ui\ProfileDetector())->detect($root);
+
+        if ($detected !== null && $detected !== \Sahil\Ui\Profile::None) {
+            $profile = $detected;
+        }
+    }
+
+    if ($profile === null || $profile === \Sahil\Ui\Profile::None) {
+        fwrite(STDERR, "make:auth: no CSS framework profile detected in this project.\n");
+        fwrite(STDERR, "  install one first: php sahil ui:install tailwind   (or: bootstrap)\n");
+        fwrite(STDERR, "  or pick one now:   php sahil make:auth --ui=tailwind\n");
+        exit(1);
+    }
+
+    try {
+        $scaffolder = new \App\Support\AuthScaffolder(dirname(__DIR__) . '/auth-stubs');
+        $report = $scaffolder->scaffold($root, $profile, $force, $dryRun);
+    } catch (Throwable $failure) {
+        fwrite(STDERR, sprintf("make:auth: %s\n", $failure->getMessage()));
+        exit(1);
+    }
+
+    fwrite(STDOUT, sprintf(
+        "%s authentication pages (%s profile).\n",
+        $dryRun ? 'Would generate' : 'Generated',
+        $report['profile']
+    ));
+
+    foreach ($report['created'] as $relative) {
+        fwrite(STDOUT, sprintf("  created  %s\n", $relative));
+    }
+
+    foreach ($report['updated'] as $relative) {
+        fwrite(STDOUT, sprintf("  updated  %s\n", $relative));
+    }
+
+    foreach ($report['skipped'] as $relative) {
+        fwrite(STDOUT, sprintf("  kept     %s (exists; --force replaces it)\n", $relative));
+    }
+
+    foreach ($report['backups'] as $relative) {
+        fwrite(STDOUT, sprintf("  backup   %s\n", $relative));
+    }
+
+    fwrite(STDOUT, "Pages: /login  /register  /forgot-password  /reset-password/{token}  /dashboard\n");
+
+    if (!$dryRun && ($report['created'] !== [] || $report['updated'] !== [])) {
+        fwrite(STDOUT, "Next: php sahil start, then open http://127.0.0.1:8000/login\n");
+        fwrite(STDOUT, "The pages render as-is; wire AuthManager and PasswordReset into routes/auth.php for real accounts.\n");
+    }
+
+    exit(0);
 }
 
 // ---------------------------------------------------------------------------
@@ -362,33 +501,48 @@ if ($flag === 'start' || $flag === 'serve') {
     $probe = @stream_socket_server('tcp://' . $bindAddress, $socketError, $socketMessage);
 
     if ($probe === false) {
-        $suggestion = null;
+        $requestedPort = $port;
+        $fallback = null;
 
-        for ($candidate = $port + 1; $candidate <= min(65535, $port + 20); $candidate++) {
+        // A busy port is not an error: keep the server usable by moving to the
+        // next free port and say so, instead of making the user re-run the
+        // command with the right --port.
+        for ($candidate = $port + 1; $candidate <= min(65535, $port + 100); $candidate++) {
             $free = @stream_socket_server('tcp://' . $bindHost . ':' . $candidate);
 
             if ($free !== false) {
                 fclose($free);
-                $suggestion = $candidate;
+                $fallback = $candidate;
 
                 break;
             }
         }
 
-        fwrite(STDERR, sprintf(
-            "start: %s:%d is already in use or unavailable%s.\n",
-            $host,
-            $port,
-            $socketMessage === '' ? '' : ' (' . $socketMessage . ')'
-        ));
-        fwrite(STDERR, $suggestion === null
-            ? "  try: php sahil start --port=<another-port>\n"
-            : sprintf("  try: php sahil start --port=%d\n", $suggestion));
-        fwrite(STDERR, "  usage: php sahil start [--host=127.0.0.1] [--port=8000]\n");
-        exit(1);
-    }
+        if ($fallback === null) {
+            fwrite(STDERR, sprintf(
+                "start: %s:%d is already in use or unavailable%s.\n",
+                $host,
+                $requestedPort,
+                $socketMessage === '' ? '' : ' (' . $socketMessage . ')'
+            ));
+            fwrite(STDERR, "  no free port was found in the next 100; stop the process using it or pass --port=<another-port>\n");
+            exit(1);
+        }
 
-    fclose($probe);
+        $port = $fallback;
+        $bindAddress = $bindHost . ':' . $port;
+
+        fwrite(STDOUT, sprintf(
+            "start: %s:%d is already in use%s; using %d instead.\n",
+            $host,
+            $requestedPort,
+            $socketMessage === '' ? '' : ' (' . $socketMessage . ')',
+            $port
+        ));
+        fwrite(STDOUT, "  pick a specific port with: php sahil start --port=<port>\n");
+    } else {
+        fclose($probe);
+    }
 
     $root = dirname(__DIR__);
 

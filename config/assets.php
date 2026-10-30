@@ -17,6 +17,9 @@ declare(strict_types=1);
  *   `production`, development otherwise. `development` points tags at the
  *   Vite dev server; `production` points at `public/build` and verifies the
  *   expected files exist.
+ * - `dev_server` is the Vite URL used in development. `ui:dev` records the
+ *   server it actually started in `public/hot`, and that file wins over this
+ *   value, so a busy port does not require a configuration change.
  * - `base_url` prefixes public URLs for applications deployed below a path
  *   (for example `/app`) or served from a CDN. Leave it empty for root-relative
  *   URLs.

@@ -5,7 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="SahilPHP">
+    <meta name="theme-color" content="#0b6fe8">
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     <title>@yield('title', app_name ?? 'SahilPHP')</title>
 
     {{-- Vite HMR client (development only) and the active profile's CSS. --}}
@@ -15,12 +17,12 @@
     {{-- Page-specific styles: define a `head` section in the page. --}}
     @yield('head')
 </head>
-<body class="@yield('body_class', 'bg-slate-50 text-slate-900 antialiased')">
+<body class="@yield('body_class', 'min-h-screen bg-white text-slate-900 antialiased')">
     @section('nav')
         @include('partials.nav', [
-            'brand' => app_name ?? 'SahilPHP',
             'links' => [
                 ['label' => 'Home', 'href' => '/'],
+                ['label' => 'UI kit', 'href' => '/ui-kit'],
                 ['label' => 'Health', 'href' => '/health'],
             ],
         ])
@@ -33,8 +35,19 @@
     </main>
 
     @section('footer')
-        <footer class="mx-auto max-w-6xl border-t border-slate-200 px-4 py-6 text-sm text-slate-500">
-            <p>Built with SahilPHP.</p>
+        <footer class="mt-20 border-t border-slate-200 bg-white">
+            <div class="mx-auto flex max-w-6xl flex-col items-start justify-between gap-5 px-4 py-8 sm:flex-row sm:items-center">
+                <div class="flex items-center gap-3">
+                    @include('partials.brand', ['variant' => 'mark'])
+                    <p class="text-sm text-slate-500">Built with SahilPHP.</p>
+                </div>
+
+                <nav class="flex flex-wrap items-center gap-6 text-sm text-slate-500" aria-label="Footer navigation">
+                    <a class="transition hover:text-slate-900" href="/">Home</a>
+                    <a class="transition hover:text-slate-900" href="/ui-kit">UI kit</a>
+                    <a class="transition hover:text-slate-900" href="/health">Health</a>
+                </nav>
+            </div>
         </footer>
     @endsection
 

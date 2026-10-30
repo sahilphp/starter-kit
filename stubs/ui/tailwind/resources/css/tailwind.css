@@ -21,4 +21,30 @@
         font-family: var(--font-sans);
         -webkit-font-smoothing: antialiased;
     }
+
+    /* Brand surfaces -----------------------------------------------------
+       The SahilPHP primary blue matches the framework logo so the welcome
+       page, buttons and links agree with the favicon and lockup. */
+    :root {
+        --sahil-color-primary: oklch(0.55 0.19 258);
+        --sahil-color-primary-foreground: oklch(1 0 0);
+    }
+}
+
+@layer components {
+    /* Soft brand glow behind the welcome hero. */
+    .hero-glow {
+        background:
+            radial-gradient(50% 60% at 50% 0%, color-mix(in oklab, var(--color-primary) 14%, transparent) 0%, transparent 70%);
+    }
+}
+
+@layer utilities {
+    .text-balance {
+        text-wrap: balance;
+    }
+
+    .text-pretty {
+        text-wrap: pretty;
+    }
 }

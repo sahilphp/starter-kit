@@ -233,9 +233,15 @@ generated configuration should replace a file; the backup path is printed.
 `ui:dev` and `ui:build` execute the project's package scripts:
 
 ```text
-<pm> run dev [-- --host=... --port=...]
+<pm> run dev -- --host=... --port=... --strictPort
 <pm> run build
 ```
+
+`ui:dev` starts at port 5173 (or the first free port above it), passes
+`--strictPort` so Vite cannot move on its own, and records the URL it started in
+`public/hot`. The layouts read that file, so a page always points at the Vite
+server that is actually running. The file is removed when Vite exits or the
+command is interrupted with Ctrl+C.
 
 Before running, they verify:
 
@@ -245,9 +251,10 @@ Before running, they verify:
 - `node_modules/vite` is installed (unless `--dry-run`).
 
 `ui:dev` attaches the child process to the terminal (`STDIN`/`STDOUT`/
-`STDERR`) so Vite's keybindings and hot reload work normally. `ui:build`
-captures output and prints it after completion. Both propagate the child's
-exit code.
+`STDERR`) so Vite's keybindings and hot reload work normally. When the first
+port is taken it prints `… is already in use; using N instead` and continues on
+the next free port. `ui:build` captures output and prints it after completion.
+Both propagate the child's exit code.
 
 After a successful build, `ui:build` verifies every asset path the profile
 promises still exists. If a custom Vite config changed the output names, the
@@ -353,7 +360,7 @@ php bin/sahil ui:build --path=/srv/apps/example
 | `Cannot add theme imports` | Run `bin/sahil ui:install <profile>` first; `ui:theme` only edits existing profile entry files |
 | `Theme source [...] was not found` | Check `--source`, or omit it to use/create `theme/tokens.json` |
 | `not valid JSON` or an invalid token error | Fix the source file; validation happens before any generated file is written |
-| Vite dev server port is busy | `bin/sahil ui:dev --port=5199` |
+| Vite dev server port is busy | Nothing to do: `ui:dev` uses the next free port and records it in `public/hot`; `--port=N` only sets the first port to try |
 
 ---
 
