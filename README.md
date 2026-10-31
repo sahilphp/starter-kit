@@ -23,7 +23,7 @@ Required extensions:
 - ext-mbstring
 - ext-json
 - ext-openssl
-- ext-pdo (MySQL/PostgreSQL database)
+- ext-pdo and ext-pdo_sqlite (default database)
 - ext-ctype
 - ext-tokenizer
 - ext-fileinfo
@@ -51,7 +51,7 @@ See the [PHP documentation](https://www.php.net/) for installation instructions.
   asset commands (`npm run dev`, `bin/sahil ui:build`). The PHP application
   boots without Node.
 - A writable `storage/` directory (it ships with `.gitkeep` files)
-- Optional: MySQL or PostgreSQL for database-backed features
+- Optional: MySQL or PostgreSQL when you outgrow the built-in SQLite default
 
 ## Installation
 
@@ -159,8 +159,8 @@ composer start -- --port=8088      # the same command through Composer
 `start` moves to the next free port and prints both, so `composer start` never
 fails with a raw "Address already in use" error.
 
-`start` runs `php -S 127.0.0.1:8000 -t public public/index.php` for you:
-`-t public` sets the document root so static assets under `public/` are served.
+`start` runs PHP's built-in development server with `-t public` as the document
+root, so static assets under `public/` are served alongside the application.
 
 Then check it:
 
@@ -203,7 +203,7 @@ are unstyled.
 ```bash
 npm ci
 php bin/sahil ui:build --clean
-APP_ENV=production php -S 127.0.0.1:8000 -t public public/index.php
+APP_ENV=production php sahil start
 ```
 
 Build output is gitignored, so **a fresh checkout must run the build before
@@ -251,8 +251,12 @@ php sahil make:auth --force         # replace existing pages (backup kept)
 
 Tailwind projects get shadcn/ui-style pages and a sidebar dashboard; Bootstrap
 projects get a Bootstrap 5 design. The command writes
-`app/Http/AuthController.php`, `routes/auth.php` and the templates under
-`resources/views/`:
+`app/Http/AuthController.php`, `app/Http/Middleware/RequireAuth.php`,
+`routes/auth.php` and the templates under `resources/views/`. The handlers are
+wired to the framework's real services: `AuthManager` for sign-in (rate
+limiting, password rehashing, session-ID rotation), hashed account creation,
+and `PasswordResetManager` for single-use, expiring reset tokens. The
+dashboard requires an account.
 
 | Route | Template |
 |---|---|
@@ -263,11 +267,27 @@ projects get a Bootstrap 5 design. The command writes
 | `/dashboard` | `pages/dashboard.sahil.php` |
 
 `WebRoutesProvider` loads `routes/auth.php` automatically when it exists, so
-the pages work as soon as the command finishes. The handlers render pages
-only: they do not authenticate, create accounts or send mail. Wire
-`AuthManager` and `PasswordReset` into the POST handlers in `routes/auth.php`
-when you add real users. Existing pages are never overwritten without
-`--force`, which backs them up under `storage/framework/auth-backups/`.
+the pages work as soon as the command finishes. Each form has a matching POST
+route: submissions are validated server-side and invalid input re-renders the
+same page with the field errors and the values the user typed (HTTP 200),
+never a 405 or a bare error page. Sign-in, registration and password reset go
+through `AuthManager` / `PasswordResetManager`; success redirects (or shows a
+status message for resets), and `POST /logout` ends the session.
+
+Run the migrations once before using the forms — `users` and
+`password_reset_tokens` ship as migrations:
+
+```bash
+php sahil migrate
+```
+
+Password-reset mail uses the configured transport. The default
+`MAIL_TRANSPORT=log` records only that a send was attempted — it never writes
+subject, body or recipients — so configure `MAIL_TRANSPORT=smtp` (or point it
+at a local mail catcher such as Mailpit) to receive the reset link. Set a real
+`MAIL_FROM_ADDRESS` as well; the template ships a placeholder. Existing pages
+are never overwritten without `--force`, which backs them up under
+`storage/framework/auth-backups/`.
 
 ## CLI
 
@@ -303,18 +323,22 @@ a stack trace.
   in `config/`. Put local values in `.env` (gitignored) or inject them from
   the environment in production.
 
-## Database (optional)
+## Database
 
-Boot, routing, views and `/health` work without a database. For
-database-backed features, set `DB_*` in `.env` (see `config/database.php`),
-then apply the shipped migrations:
+SQLite is the default and needs no setup: the file
+`database/database.sqlite` is created on first connect (it is gitignored),
+and `DB_DRIVER`/`DB_DATABASE` may be left empty. Boot, routing, views and
+`/health` work even before that. Apply the shipped migrations:
 
 ```bash
 php bin/sahil migrate:status
 php bin/sahil migrate
 ```
 
-The queue and scheduler tables are part of those migrations.
+The queue and scheduler tables are part of those migrations. To use MySQL or
+PostgreSQL instead, set `DB_DRIVER=mysql|pgsql` plus `DB_HOST`, `DB_PORT`,
+`DB_DATABASE`, `DB_USERNAME` and `DB_PASSWORD` in `.env` (see
+`config/database.php`); the SQLite file is then ignored.
 
 ## Security
 
@@ -368,7 +392,7 @@ are skipped unless `SAHIL_DB_TEST_MYSQL` / `SAHIL_DB_TEST_PGSQL` are set.
 | `resources/` | Frontend sources for the Vite build |
 | `routes/web.php` | Route table (`/`, `/ui-kit`, `/health`) |
 | `routes/auth.php` | Auth pages generated by `make:auth` (optional) |
-| `auth-stubs/` | Templates and controller source for `make:auth` |
+| `.sahil/scaffolds/auth/` | Hidden sources for `make:auth`; copied into `app/`, `routes/` and `resources/views/` on demand |
 | `public/logo.png`, `public/logo-mark.png` | Official SahilPHP logo assets |
 | `storage/` | Logs, compiled views, sessions, cache, uploads |
 | `tests/` | Application test suite (`Tests\`) |

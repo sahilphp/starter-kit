@@ -20,8 +20,21 @@
         "application",
         "framework"
     ],
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../firefiber",
+            "options": {
+                "symlink": true,
+                "versions": {
+                    "sahilphp/firefiber": "1.0.0"
+                }
+            }
+        }
+    ],
     "require": {
         "php": "^8.4",
+        "sahilphp/firefiber": "^1.0",
         "sahilphp/framework": "^1.0"
     },
     "require-dev": {

@@ -74,6 +74,7 @@ final class MakeAuthCommandTest extends TestCase
     {
         return [
             'app/Http/AuthController.php',
+            'app/Http/Middleware/RequireAuth.php',
             'routes/auth.php',
             'resources/views/layouts/auth.sahil.php',
             'resources/views/layouts/dashboard.sahil.php',
@@ -108,6 +109,32 @@ final class MakeAuthCommandTest extends TestCase
         self::assertStringContainsString("Route::get('/login'", $routes);
         self::assertStringContainsString("Route::get('/dashboard'", $routes);
         self::assertStringContainsString("'/reset-password/{token}'", $routes);
+
+        // Every form posts to a route that exists, so submitting never 405s.
+        self::assertStringContainsString("Route::post('/login'", $routes);
+        self::assertStringContainsString("Route::post('/register'", $routes);
+        self::assertStringContainsString("Route::post('/forgot-password'", $routes);
+        self::assertStringContainsString("Route::post('/reset-password/{token}'", $routes);
+
+        // Field errors are rendered next to the inputs.
+        self::assertStringContainsString('errors.email', $login);
+        self::assertStringContainsString('old.email', $login);
+        self::assertStringContainsString('novalidate', $login);
+
+        // The handlers use the framework's real auth services.
+        $controller = (string) file_get_contents($this->project . '/app/Http/AuthController.php');
+        self::assertStringContainsString('AuthManager', $controller);
+        self::assertStringContainsString('PasswordResetManager', $controller);
+        self::assertStringContainsString('->attempt(', $controller);
+        self::assertStringContainsString('->logout()', $controller);
+        self::assertStringContainsString('->validateToken(', $controller);
+        self::assertStringContainsString('->updatePassword(', $controller);
+        self::assertStringContainsString("Route::post('/logout'", $routes);
+        self::assertStringContainsString('RequireAuth::class', $routes);
+
+        // The dashboard shows the signed-in account and offers a way out.
+        self::assertStringContainsString('user.name', $dashboard);
+        self::assertStringContainsString('action="/logout"', $dashboard);
     }
 
     public function test_bootstrap_profile_writes_bootstrap_pages(): void
@@ -117,7 +144,9 @@ final class MakeAuthCommandTest extends TestCase
         self::assertSame(0, $code, $stdout . $stderr);
 
         $login = (string) file_get_contents($this->project . '/resources/views/auth/login.sahil.php');
-        self::assertStringContainsString('class="form-control"', $login);
+        self::assertStringContainsString('form-control', $login);
+        self::assertStringContainsString('invalid-feedback', $login);
+        self::assertStringContainsString('errors.email', $login);
         self::assertStringContainsString('btn btn-primary', $login);
 
         $dashboard = (string) file_get_contents($this->project . '/resources/views/pages/dashboard.sahil.php');

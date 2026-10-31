@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Auth\DatabasePasswordResetTokenRepository;
+use App\Auth\UserRepository;
 use Sahil\Auth\AuthManager;
 use Sahil\Auth\DatabaseUserProvider;
 use Sahil\Auth\EmailVerification;
@@ -13,6 +15,7 @@ use Sahil\Auth\PolicyManager;
 use Sahil\Auth\RateLimiter;
 use Sahil\Auth\SessionAuthState;
 use Sahil\Container\Container;
+use Sahil\Contracts\Auth\PasswordResetTokenRepositoryContract;
 use Sahil\Contracts\Foundation\ApplicationContract;
 use Sahil\Foundation\ServiceProvider;
 
@@ -77,8 +80,30 @@ final class AuthProvider extends ServiceProvider
         // Register email verification
         $container->singleton(EmailVerification::class, static fn (): EmailVerification => new EmailVerification());
 
-        // Password reset manager is registered conditionally by the application
-        // if they implement PasswordResetTokenRepositoryContract
+        // Accounts: creation and lookup for the generated registration form.
+        $container->singleton(UserRepository::class, static fn (Container $container): UserRepository
+            => new UserRepository($container->make(\Sahil\Database\Connection::class)));
+
+        // Password reset: tokens live in the database, expire after the
+        // configured window, and only their SHA-256 digest is stored.
+        $container->singleton(PasswordResetTokenRepositoryContract::class, static function (Container $container): PasswordResetTokenRepositoryContract {
+            $config = $container->make(ApplicationContract::class)->config();
+
+            return new DatabasePasswordResetTokenRepository(
+                $container->make(\Sahil\Database\Connection::class),
+                (int) $config->get('auth.password_reset.token_expiration', 60),
+            );
+        });
+
+        $container->singleton(PasswordResetManager::class, static function (Container $container): PasswordResetManager {
+            $config = $container->make(ApplicationContract::class)->config();
+
+            return new PasswordResetManager(
+                $container->make(DatabaseUserProvider::class),
+                $container->make(PasswordResetTokenRepositoryContract::class),
+                (int) $config->get('auth.password_reset.token_expiration', 60),
+            );
+        });
 
         // Register authentication middleware
         $container->singleton(\Sahil\Http\Middleware\Authenticate::class, static fn (Container $c): \Sahil\Http\Middleware\Authenticate

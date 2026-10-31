@@ -298,7 +298,7 @@ if ($flag === 'make:auth') {
     }
 
     try {
-        $scaffolder = new \App\Support\AuthScaffolder(dirname(__DIR__) . '/auth-stubs');
+        $scaffolder = new \App\Support\AuthScaffolder(dirname(__DIR__) . '/.sahil/scaffolds/auth');
         $report = $scaffolder->scaffold($root, $profile, $force, $dryRun);
     } catch (Throwable $failure) {
         fwrite(STDERR, sprintf("make:auth: %s\n", $failure->getMessage()));

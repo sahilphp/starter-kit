@@ -14,9 +14,11 @@ use SplFileInfo;
 /**
  * Writes the authentication pages produced by `php sahil make:auth`.
  *
- * The sources live in `auth-stubs` (kept out of `stubs/`, which project
- * creation and `ui:install` delete): `shared/` holds the controller and route
- * table, and one directory per UI profile holds the templates. Every source
+ * The sources live in the hidden, internal `.sahil/scaffolds/auth` directory
+ * (kept out of `stubs/`, which project creation and `ui:install` delete, and
+ * out of the application's public surface): `shared/` holds the controller and
+ * route table, and one directory per UI profile holds the templates. Only the
+ * files a run copies reach `app/`, `routes/` and `resources/views/`. Every source
  * file is read before the first page is written, so a failed run cannot leave
  * a half-generated page set behind, and existing pages are kept unless the
  * caller passes `--force` (which backs them up first).

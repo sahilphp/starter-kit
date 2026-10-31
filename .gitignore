@@ -24,6 +24,12 @@
 !/public/storage/.htaccess
 .phpunit.result.cache
 
+# SQLite databases (created on first connect)
+/database/*.sqlite
+/database/*.sqlite-journal
+/database/*.sqlite-wal
+/database/*.sqlite-shm
+
 # Additional generated/runtime artifacts
 /storage/framework/testing/
 /public/hot

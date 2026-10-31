@@ -13,6 +13,7 @@
     {{-- Vite HMR client (development only) and the active profile's CSS. --}}
     @asset_client
     @asset_css('main')
+    @asset_css('@fiberstyles')
 
     {{-- Page-specific styles: define a `head` section in the page. --}}
     @yield('head')
@@ -55,6 +56,7 @@
 
     {{-- Profile JavaScript, then page-specific scripts. --}}
     @asset_js('main')
+    @asset_js('@fiberscripts')
     @yield('scripts')
 </body>
 </html>

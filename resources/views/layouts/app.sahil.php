@@ -9,6 +9,8 @@
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    {{-- Firefiber's optional package-managed state styles. --}}
+    @asset_css('@fiberstyles')
     <title>@yield('title', app_name ?? 'SahilPHP')</title>
 
     {{-- Page-specific styles: define a `head` section in the page. --}}
@@ -50,6 +52,8 @@
 
     @yield('footer')
 
+    {{-- Firefiber browser runtime from the installed Composer package. --}}
+    @asset_js('@fiberscripts')
     @yield('scripts')
 </body>
 </html>

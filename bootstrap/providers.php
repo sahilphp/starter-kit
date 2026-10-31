@@ -24,6 +24,7 @@ return [
     \App\Providers\ScheduleProvider::class,
     \App\Providers\MailProvider::class,
     \App\Providers\AssetProvider::class,
+    \Sahil\Firefiber\FirefiberServiceProvider::class,
     \App\Providers\ViewProvider::class,
     \App\Providers\WebRoutesProvider::class,
     \App\Providers\CacheProvider::class,
